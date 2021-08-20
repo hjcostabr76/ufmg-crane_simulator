@@ -1,3 +1,7 @@
+try:
+    import sim
+except:
+    print ('Error import sim. Verify files and settings Coppelia.')
 
 ''' ==========================================================
 -- CONSTANTES ------------------------------------------------
@@ -26,14 +30,16 @@ SIM_SENS_PROX = 'Proximity_sensor' # Sensor de proximidade no guincho
 ========================================================== '''
 
 
-def handle_coppelia_return_code(return_code: int):
+def validate_coppelia_return(return_code: int):
 
     '''
         TODO: 2021-08-20 - Implementar
         See: https://www.coppeliarobotics.com/helpFiles/en/remoteApiConstants.htm#functionErrorCodes
     '''
 
-    # sim.simx_return_ok
+    if (return_code == sim.simx_return_ok):
+        return
+    
     # sim.simx_return_novalue_flag
     # sim.simx_return_timeout_flag
     # sim.simx_return_illegal_opmode_flag
