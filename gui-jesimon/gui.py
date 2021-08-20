@@ -236,7 +236,7 @@ class Ui_Guindaste(object):
 
         #Start conection Connection
         def connect():
-            print('Start Connection')
+            print('UI: Start Connection')
             _, status = control.init_connection(ip = '127.0.0.1' , port = 19997)
             if status:
                 self.lcdNumber_4.display('UP')
@@ -306,8 +306,10 @@ class Ui_Guindaste(object):
                 old_angle = control.getCurrentAngleClaw()
                 step = float(cod)
                 status = control.commandRight(step)
-            except:
+            except Exception as error:
                 status = False
+                print(error)
+
             if status:
                 desired_angle = getAngle360(old_angle - step)
                 cnt = 0
@@ -537,4 +539,3 @@ if __name__ == "__main__":
     ui.setupUi(Guindaste)
     Guindaste.show()
     sys.exit(app.exec_())
-

@@ -36,13 +36,16 @@ class Connection(object):
         self.currentHeightHook = 0
 
     def init_connection(self, ip = '127.0.0.1' , port = 19997):
-        #print ('Program started')
+        print ('CONN: Program started')
         sim.simxFinish(-1) # just in case, close all opened connections
         clientID=sim.simxStart(ip, port,True,True,5000,5) # Connect to CoppeliaSim
         if clientID==-1:
             return -1, False
         self.clientID = clientID
         self.connectionStatus = True
+
+        sim.simxAddStatusbarMessage(clientID,'Hello CoppeliaSim!',sim.simx_opmode_oneshot)
+
 
         # Get Coppelia Objects ID
         self.boom =  sim.simxGetObjectHandle(clientID,'Atuador_braco',sim.simx_opmode_blocking)[-1]
