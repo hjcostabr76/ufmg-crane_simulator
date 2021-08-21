@@ -43,9 +43,15 @@ try:
 
         # Hoist: Vertical
         if command == 'w': # Up
-            run_command(controller.set_hoist_vertical_vel, 4)
-        elif command == 's': # Down
             run_command(controller.set_hoist_vertical_vel, -4)
+        elif command == 's': # Down
+            run_command(controller.set_hoist_vertical_vel, 4)
+
+        # Hoist: Angular
+        elif command == 'v': # Right
+            run_command(controller.set_hoist_angular_vel, 4)
+        elif command == 'c': # Left
+            run_command(controller.set_hoist_angular_vel, -4)
 
         # Arm
         elif command == 'a': # Right
@@ -65,7 +71,7 @@ try:
             log('magnet is ' + 'on' if is_magnet_on else 'off')
 
         else:
-            log('Invalid command...')
+            log('Invalid command: ' + command)
             
 except ConnectionError as conn_error:
     print('\nFalha ao iniciar simulacao: ', conn_error)

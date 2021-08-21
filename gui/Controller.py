@@ -16,10 +16,13 @@ VELOCITY_MAX = 10
 
 # Objetos da simulacao
 SIM_ARM = 'Arm_actuator' # Lanca
+SIM_BASE = 'Base_PS' # Base do guindaste
 SIM_CRAB = 'Crab_actuator' # Guincho
+SIM_HOIST_ANGULAR = 'Revolute_hoist' # Garra: Junta de movimento rotacional
 SIM_HOIST_VERTICAL = 'Hoist_actuator' # Garra: Junta de monvimento vertical
-SIM_HOIST_ANGULAR = '' # Garra: Junta de movimento rotacional
+
 SIM_MAGNET = 'suctionPad' # Ima
+SIM_MAGNET_SCRIPT = 'actuateMagnetRemote' # Ima: Funcao que atualiza seu estado
 
 SIM_CAM1 = 'Camera_Panoramica' # Camera panoramica
 SIM_CAM2 = 'Camera_Guincho' # Camera do guincho
@@ -41,7 +44,7 @@ class Controller:
     __crab = None
     __hoist_vertical = None
     __hoist_angular = None
-    __magnet = None
+    # __magnet = None
 
     __is_magnet_active: bool = False
 
@@ -61,8 +64,8 @@ class Controller:
         self.__arm = self.__simulation.get_obj_handle(SIM_ARM)
         self.__crab = self.__simulation.get_obj_handle(SIM_CRAB)
         self.__hoist_vertical = self.__simulation.get_obj_handle(SIM_HOIST_VERTICAL)
-        self.__hoist_angular = self.__simulation.get_obj_handle(SIM_HOIST_VERTICAL)
-        self.__magnet = self.__simulation.get_obj_handle(SIM_MAGNET)
+        self.__hoist_angular = self.__simulation.get_obj_handle(SIM_HOIST_ANGULAR)
+        # self.__magnet = self.__simulation.get_obj_handle(SIM_MAGNET)
         # self.cam1 = self.get_object_handle(SIM_CAM1)
         # self.cam2 = self.get_object_handle(SIM_CAM2)
         # self.sensor_force_cabin = self.get_object_handle(SIM_SENS_FORCE_CABIN)
@@ -87,7 +90,7 @@ class Controller:
         pass
 
     def toggle_magnet_state(self) -> bool:
-        self.__simulation.run_script(self.__magnet, 'actuateMagnet')
+        self.__simulation.run_script(SIM_BASE, SIM_MAGNET_SCRIPT)
         self.__is_magnet_active = not self.__is_magnet_active
         return self.__is_magnet_active
 

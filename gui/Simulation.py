@@ -86,8 +86,8 @@ class Simulation():
         self.validate_coppelia_return(handle_result[0])
         return handle_result[1]
 
-    def run_script(self, handler, func: str):
-        sim.simxCallScriptFunction(self.sim_id, handler, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
+    def run_script(self, obj: str, func: str):
+        sim.simxCallScriptFunction(self.sim_id, obj, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
 
     def set_joint_velocity(self, handler, velocity: float) -> None:
         sim.simxSetJointTargetVelocity(self.sim_id, handler, velocity, sim.simx_opmode_oneshot)
