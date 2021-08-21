@@ -9,6 +9,11 @@ if __name__ != "__main__":
 def log(msg: str) -> None:    
     print('cli ', msg)
 
+def foo(func, velocity: int) -> None:
+    func(velocity)
+    time.sleep(1)
+    func(0)
+
 conn_manager: Simulation = None
 
 try:
@@ -24,14 +29,49 @@ try:
     if (not is_connected):
         raise ConnectionError(conn_error)
 
-    controller = Controller(client_id)
-    conn_manager.start()
-    time.sleep(2)
     # Iniciar controlador
+    conn_manager.start()
+    controller = Controller(conn_manager)
+    time.sleep(1)
 
+    # Hora do show
+    is_magnet_on = False
+
+    while True:
+
+        command = input('Command: ')
+
+        # Hoist: Vertical
+        if command == 'w': # Up
+            foo(controller.set_hoist_vertical_vel, 4)
+        elif command == 's': # Down
+            foo(controller.set_hoist_vertical_vel, -4)
+
+        # Arm
+        elif command == 'a': # Right
+            foo(controller.set_arm_vel, -4)
+        elif command == 'd': # Left
+            foo(controller.set_arm_vel, 4)
+
+        # Crab
+        elif command == 'q': # Front
+            foo(controller.set_crab_vel, 4)
+        elif command == 'r': # Back
+            foo(controller.set_crab_vel, -4)
+
+        # Magnet
+        elif command == 'e':
+            is_magnet_on = controller.toggle_magnet_state()
+
+        else:
+            log('Invalid command...')
+            
 except ConnectionError as conn_error:
-    print('\Falha ao iniciar simulacao: ', conn_error)
+    print('\nFalha ao iniciar simulacao: ', conn_error)
     raise conn_error
+
+except KeyboardInterrupt:
+    pass
 
 except Exception as error:
     print('\nFalha inesperada: ', error)
