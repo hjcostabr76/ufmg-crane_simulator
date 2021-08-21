@@ -1,6 +1,6 @@
 from ctypes import ArgumentError
 from Simulation import Simulation
-from common import *
+from config import *
 import math
 
 try:

@@ -1,5 +1,5 @@
 from typing import Tuple
-from common import TIMEOUT
+from config import TIMEOUT
 import math
 
 try:
