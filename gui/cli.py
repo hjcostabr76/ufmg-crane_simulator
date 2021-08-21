@@ -7,14 +7,14 @@ if __name__ != "__main__":
     sys.exit()
 
 def log(msg: str) -> None:    
-    print('cli ', msg)
+    print('[cli]', msg)
 
 def run_command(func, velocity: int) -> None:
     func(velocity)
     time.sleep(1)
     func(0)
 
-conn_manager: Simulation = None
+simulation: Simulation = None
 
 try:
 
@@ -24,20 +24,23 @@ try:
         ip = sys.argv[1]
 
     # Inicia simulacao
-    conn_manager = Simulation()
-    is_connected, client_id, conn_error = conn_manager.connect(ip) if ip else conn_manager.connect()
+    simulation = Simulation()
+    is_connected, client_id, conn_error = simulation.connect(ip) if ip else simulation.connect()
     if (not is_connected):
         raise ConnectionError(conn_error)
 
     # Iniciar controlador
-    conn_manager.start()
-    controller = Controller(conn_manager)
+    simulation.start()
+    controller = Controller(simulation)
     time.sleep(1)
 
     # Hora do show
     is_magnet_on = False
 
     while True:
+
+        if (not simulation.is_simulation_running()):
+            raise ConnectionAbortedError('Lost connection to simulation')
 
         command = input('Command: ')
 
@@ -54,10 +57,14 @@ try:
             run_command(controller.set_hoist_angular_vel, -4)
 
         # Arm
-        elif command == 'a': # Right
-            run_command(controller.set_arm_vel, -4)
-        elif command == 'd': # Left
-            run_command(controller.set_arm_vel, 4)
+        elif (command in ['a', 'd']):
+
+            if command == 'a': # Right
+                run_command(controller.set_arm_vel, -10)
+            else: # Left
+                run_command(controller.set_arm_vel, 10)
+
+            log('Arm angle: ' + str(controller.get_arm_angle()))
 
         # Crab
         elif command == 'r': # Front
@@ -72,9 +79,16 @@ try:
 
         else:
             log('Invalid command: ' + command)
+
+        controller.get_arm_angle()
+        # log('Arm angle: ' + )
             
 except ConnectionError as conn_error:
-    print('\nFalha ao iniciar simulacao: ', conn_error)
+    print('\nFailure as trying to start simulation: ', conn_error)
+    raise conn_error
+
+except ConnectionError as conn_error:
+    print('\nLost connection to simulation: ', conn_error)
     raise conn_error
 
 except KeyboardInterrupt:
@@ -85,6 +99,6 @@ except Exception as error:
     raise error
 
 finally:
-    if (conn_manager):
-        conn_manager.disconnect()
+    if simulation:
+        simulation.disconnect()
     print('\n-- THE END --\n')
