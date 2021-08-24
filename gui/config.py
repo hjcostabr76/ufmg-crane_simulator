@@ -5,7 +5,8 @@
 
 TIMEOUT = 5000 # ms
 PORT_DEFAULT = 19997 # Porta padrao da simulacao no coppelia
-VELOCITY_MAX = 10
+VELOCITY_MAX = 100
+SCALE = 10 # Fator de escala para dimensoes dos objetos da simulacao
 
 # Objetos da simulacao
 

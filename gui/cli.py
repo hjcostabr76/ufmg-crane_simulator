@@ -51,6 +51,7 @@ try:
         if (not simulation.is_simulation_running()):
             raise ConnectionAbortedError('Lost connection to simulation')
 
+        # controller.get_proximity_sensor_reading()
         command = input('Command: ')
 
         # Arm

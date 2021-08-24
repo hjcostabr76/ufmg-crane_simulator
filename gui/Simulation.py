@@ -117,6 +117,14 @@ class Simulation():
         self.__validate_coppelia_return(result[0])
         return result[1]
 
+    def get_sensor_reading(self, obj_name: str) -> None:
+        '''
+            TODO: 2021-08-24 - ADD Descricao
+            TODO: 2021-08-24 - Fazer isso funcionar
+        '''
+        result = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
+        # print('ya bada ba doo', result)
+
     def run_script(self, obj: str, func: str):
         sim.simxCallScriptFunction(self.__client_id, obj, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
 
