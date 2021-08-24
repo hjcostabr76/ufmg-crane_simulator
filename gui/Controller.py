@@ -21,29 +21,36 @@ class Controller:
         self.__simulation = simulation
 
     def set_arm_vel(self, velocity: int) -> None:
-        self.__set_obj_velocity(SIM_ARM, velocity)
-        pass
+        self.__set_obj_velocity(SIM_ARM_JOINT, velocity)
 
     def set_crab_vel(self, velocity: int) -> None:
-        self.__set_obj_velocity(SIM_CRAB, velocity)
-        pass
+        self.__set_obj_velocity(SIM_CRAB_JOINT, velocity)
 
     def set_hoist_vertical_vel(self, velocity: int) -> None:
-        self.__set_obj_velocity(SIM_HOIST_VERTICAL, velocity)
-        pass
+        self.__set_obj_velocity(SIM_HOIST_JOINT_VERTICAL, velocity)
 
     def set_hoist_angular_vel(self, velocity: int) -> None:
-        self.__set_obj_velocity(SIM_HOIST_ANGULAR, velocity)
-        pass
+        self.__set_obj_velocity(SIM_HOIST_JOINT_ANGULAR, velocity)
 
     def toggle_magnet_state(self) -> bool:
         self.__simulation.run_script(SIM_BASE, SIM_MAGNET_SCRIPT)
         self.__is_magnet_active = not self.__is_magnet_active
-        return self.__is_magnet_active
+        return self.is_magnet_active()
 
     def get_arm_angle(self) -> float:
-        angle = self.__simulation.get_joint_angle(SIM_ARM)
-        return angle
+        return self.__simulation.get_joint_angular_displacement(SIM_ARM_JOINT)
+
+    def get_crab_position(self) -> float:
+        return self.__simulation.get_obj_position(SIM_CRAB)[0]
+
+    def get_hoist_height(self) -> float:
+        return self.__simulation.get_obj_position(SIM_HOIST)[-1]
+
+    def get_hoist_angle(self) -> float:
+        return self.__simulation.get_joint_angular_displacement(SIM_HOIST_JOINT_ANGULAR)
+
+    def is_magnet_active(self) -> float:
+        return self.__is_magnet_active
 
     def __set_obj_velocity(self, obj_name: str, velocity: int) -> None:
         if (type(velocity) != int or math.fabs(velocity) > VELOCITY_MAX):

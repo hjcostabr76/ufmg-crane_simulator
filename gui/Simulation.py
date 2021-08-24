@@ -59,6 +59,9 @@ class Simulation():
         self.__log('Connection closed')
     
     def is_simulation_running(self) -> bool:
+        '''
+            FIXME: 2021-08-23 - Fazer isso funcionar direito
+        '''
         return sim.simxGetConnectionId(self.__client_id) != -1
 
     def start(self) -> None:
@@ -91,20 +94,44 @@ class Simulation():
         self.__validate_coppelia_return(handle_result[0])
         return handle_result[1]
 
-    def get_joint_angle(self, obj_name: str) -> float:
+    def get_joint_angular_displacement(self, obj_name: str) -> float:
         '''
-            Return the intrinsic angle of a simulation object in degrees.
+            Return the angular displacement of a simulation joint in degrees.
         '''
 
-        result = sim.simxGetJointPosition(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_blocking)
+        return math.degrees(self.__get_joint_displacement(obj_name))
+
+    def get_joint_linear_displacement(self, obj_name: str) -> float:
+        '''
+            Return the linear displacement of a simulation joint in meters.
+        '''
+        
+        return self.__get_joint_displacement(obj_name)
+
+    def get_obj_position(self, obj_name: str) -> float:
+        '''
+            Return a simulation object absolute position coordinates in meters.
+        '''
+
+        result = sim.simxGetObjectPosition(self.__client_id, self.get_obj_handle(obj_name), -1, sim.simx_opmode_blocking)
         self.__validate_coppelia_return(result[0])
-        return math.degrees(result[1])
+        return result[1]
 
     def run_script(self, obj: str, func: str):
         sim.simxCallScriptFunction(self.__client_id, obj, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
 
     def set_joint_velocity(self, obj_name: str, velocity: float) -> None:
         sim.simxSetJointTargetVelocity(self.__client_id, self.get_obj_handle(obj_name), velocity, sim.simx_opmode_oneshot)
+
+    def __get_joint_displacement(self, obj_name: str) -> float:
+        '''
+            Return the intrinsic displacement of a simulation object:
+            It might be radians or metres depending on the type of the joint;
+        '''
+
+        result = sim.simxGetJointPosition(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_blocking)
+        self.__validate_coppelia_return(result[0])
+        return result[1]        
 
     def __validate_coppelia_return(self, return_code: int) -> None:
         '''
@@ -132,7 +159,7 @@ class Simulation():
         elif (sim.simx_return_initialize_error_flag == sim.simx_return_initialize_error_flag):
             return_name = 'simx_return_initialize_error_flag'
         
-        raise NotImplementedError('Bad operation return code: ' + str(return_code) + '[' + return_name + ']')
+        raise NotImplementedError('Bad operation return code: ' + str(return_code) + ' [' + return_name + ']')
 
     def __log(self, msg: str) -> None:
         print('[sim]', msg)

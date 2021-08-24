@@ -1,3 +1,4 @@
+from config import VELOCITY_MAX
 import sys
 import time
 from Simulation import Simulation
@@ -6,6 +7,8 @@ from Controller import Controller
 if __name__ != "__main__":
     sys.exit()
 
+VELOCITY_DEFAULT = 10
+
 def log(msg: str) -> None:    
     print('[cli]', msg)
 
@@ -13,6 +16,12 @@ def run_command(func, velocity: int) -> None:
     func(velocity)
     time.sleep(1)
     func(0)
+
+def get_angle_txt(angle: float) -> str:
+    return "{:0.2f}".format(angle) + ' degres'
+
+def get_position_txt(position: float) -> str:
+    return '{:0.2f}'.format(position) + ' meters'
 
 simulation: Simulation = None
 
@@ -44,51 +53,64 @@ try:
 
         command = input('Command: ')
 
-        # Hoist: Vertical
-        if command == 'w': # Up
-            run_command(controller.set_hoist_vertical_vel, -4)
-        elif command == 's': # Down
-            run_command(controller.set_hoist_vertical_vel, 4)
-
-        # Hoist: Angular
-        elif command == 'v': # Right
-            run_command(controller.set_hoist_angular_vel, 4)
-        elif command == 'c': # Left
-            run_command(controller.set_hoist_angular_vel, -4)
-
         # Arm
-        elif (command in ['a', 'd']):
+        if (command in ['a', 'd']):
 
             if command == 'a': # Right
-                run_command(controller.set_arm_vel, -10)
+                run_command(controller.set_arm_vel, -VELOCITY_DEFAULT)
             else: # Left
-                run_command(controller.set_arm_vel, 10)
+                run_command(controller.set_arm_vel, VELOCITY_DEFAULT)
 
-            log('Arm angle: ' + str(controller.get_arm_angle()))
+            log('Arm angle: ' + get_angle_txt(controller.get_arm_angle()))
+            continue
+
+        # Hoist: Vertical
+        if (command in ['w', 's']):
+            
+            if command == 'w': # Up
+                run_command(controller.set_hoist_vertical_vel, -VELOCITY_DEFAULT)
+            else: # Down
+                run_command(controller.set_hoist_vertical_vel, VELOCITY_DEFAULT)
+
+            log('Hoist height: ' + get_position_txt(controller.get_hoist_height()))
+            continue
+
+        # Hoist: Angular
+        if (command in ['v', 'c']):
+            
+            if command == 'v': # Right
+                run_command(controller.set_hoist_angular_vel, VELOCITY_DEFAULT)
+            else: # Left
+                run_command(controller.set_hoist_angular_vel, -VELOCITY_DEFAULT)
+
+            log('Hoist angle: ' + get_angle_txt(controller.get_hoist_angle()))
+            continue
 
         # Crab
-        elif command == 'r': # Front
-            run_command(controller.set_crab_vel, 4)
-        elif command == 'q': # Back
-            run_command(controller.set_crab_vel, -4)
+        if (command in ['r', 'q']):
+        
+            if command == 'r': # Front
+                run_command(controller.set_crab_vel, VELOCITY_DEFAULT)
+            else: # Back
+                run_command(controller.set_crab_vel, -VELOCITY_DEFAULT)
+
+            log('Crab position: ' + get_position_txt(controller.get_crab_position()))
+            continue
 
         # Magnet
-        elif command == 'e':
+        if command == 'e':
             is_magnet_on = controller.toggle_magnet_state()
             log('magnet is ' + 'on' if is_magnet_on else 'off')
+            continue
 
-        else:
-            log('Invalid command: ' + command)
-
-        controller.get_arm_angle()
-        # log('Arm angle: ' + )
+        log('Invalid command: ' + command)
             
 except ConnectionError as conn_error:
     print('\nFailure as trying to start simulation: ', conn_error)
     raise conn_error
 
 except ConnectionError as conn_error:
-    print('\nLost connection to simulation: ', conn_error)
+    print('\nLost connestr()ction to simulation: ', conn_error)
     raise conn_error
 
 except KeyboardInterrupt:
