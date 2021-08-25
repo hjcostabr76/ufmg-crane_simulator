@@ -1,4 +1,3 @@
-from config import VELOCITY_MAX
 import sys
 import time
 from Simulation import Simulation
@@ -106,12 +105,12 @@ try:
 
         log('Invalid command: ' + command)
             
-except ConnectionError as conn_error:
+except ConnectionAbortedError as conn_error:
     print('\nFailure as trying to start simulation: ', conn_error)
     raise conn_error
 
 except ConnectionError as conn_error:
-    print('\nLost connestr()ction to simulation: ', conn_error)
+    print('\nLost connection to simulation: ', conn_error)
     raise conn_error
 
 except KeyboardInterrupt:
