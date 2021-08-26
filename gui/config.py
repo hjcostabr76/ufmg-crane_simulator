@@ -3,6 +3,7 @@
 -- CONSTANTES ------------------------------------------------
 ========================================================== '''
 
+NAME_SIMULATION = 'Crane Simulator - UFMG: Systems Engineering - Group B - 2021/1'
 TIMEOUT = 5000 # ms
 PORT_DEFAULT = 19997 # Porta padrao da simulacao no coppelia
 VELOCITY_MAX_LEVEL = 10
