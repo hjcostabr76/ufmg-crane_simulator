@@ -92,6 +92,7 @@ class Simulation():
         '''
             Catch and return a simulation object handler by its name.
         '''
+
         return_code, handle = sim.simxGetObjectHandle(self.__client_id, obj_name, sim.simx_opmode_blocking)
         self.__validate_coppelia_return(return_code)
         return handle
@@ -133,7 +134,7 @@ class Simulation():
         result = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
 
     def get_vision_sensor_img(self, sensor_obj_name: str) -> QtGui.QImage:
-         
+
         return_code, resolution, image = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_buffer)
         self.__validate_coppelia_return(return_code)
         

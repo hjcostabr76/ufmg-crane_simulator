@@ -1,6 +1,7 @@
 from ctypes import ArgumentError
 from Simulation import Simulation
 from config import *
+from PyQt5 import QtGui
 import math
 
 try:

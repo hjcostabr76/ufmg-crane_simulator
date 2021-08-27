@@ -26,8 +26,8 @@ SIM_HOIST_JOINT_VERTICAL = 'Hoist_actuator' # Garra: Junta de monvimento vertica
 SIM_MAGNET = 'suctionPad' # Ima
 SIM_MAGNET_SCRIPT = 'actuateMagnet' # Ima: Funcao que atualiza seu estado
 
-SIM_CAM1 = 'Camera_Panoramica' # Camera panoramica
-SIM_CAM2 = 'Camera_Guincho' # Camera do guincho
+SIM_CAM1 = 'DefaultCamera' # Camera panoramica
+SIM_CAM2 = 'Vision_sensor' # Camera do guincho
 
 SIM_SENS_FORCE_CABIN = 'Force_sensor' # Sensor de forca na cabine
 SIM_SENS_FORCE_CRAB = 'Force_sensor0' # Sensor de forca no guincho

@@ -49,7 +49,7 @@ class Ui_MainWindow(object):
         self.crane_picture_view = QtWidgets.QGraphicsView(self.centralwidget)
         self.crane_picture_view.setGeometry(QtCore.QRect(10, 390, 200, 181))
         self.crane_picture_view.setObjectName("graphicsView_2")
-        self.crane_picture_view.setStyleSheet("background:transparent;")
+        self.crane_picture_view.setStyleSheet("background:transparent;")        
         self.__set_img(self.crane_picture_view, './crane.jpg')
 
         # Status do Guindaste
@@ -266,7 +266,7 @@ class Ui_MainWindow(object):
 
     def __update_displayed_values(self) -> None:
         '''
-            Update the values shown on every lcd display / dinamic labels, etc.
+            Update the values shown on every lcd display / dinamic labels.
         '''
 
         if (not self.__is_simulation_running):
@@ -367,7 +367,8 @@ class Ui_MainWindow(object):
         return str(round(value, 2))
 
     def __set_img(self, view: QtWidgets.QGraphicsView, img) -> None:
-        scene_item = QtWidgets.QGraphicsPixmapItem(QtGui.QPixmap(img)).setScale(0.35)
+        scene_item = QtWidgets.QGraphicsPixmapItem(QtGui.QPixmap(img))
+        scene_item.setScale(0.35)
         scene = QtWidgets.QGraphicsScene(self.centralwidget)
         scene.addItem(scene_item)
         view.setScene(scene)
