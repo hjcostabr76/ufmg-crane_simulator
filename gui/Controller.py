@@ -69,7 +69,12 @@ class Controller:
         return self.__is_magnet_active
 
     def get_proximity_sensor_reading(self) -> None:
-        self.__simulation.get_sensor_reading(SIM_SENS_PROX)
+        self.__simulation.get_sensor_reading_proximity(SIM_SENS_PROX)
+
+    def get_cam_img(self, cam_number: int) -> QtGui.QImage:
+        if (cam_number not in [1, 2]):
+            raise ValueError('Camera number should be 1 or 2. [' + str(cam_number) + ' received]')
+        return self.__simulation.get_vision_sensor_img(SIM_CAM1 if (cam_number == 1) else SIM_CAM2)
 
     def __get_parsed_position(self, distance: float) -> float:
         return SCALE * distance

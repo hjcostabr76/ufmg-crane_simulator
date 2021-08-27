@@ -45,6 +45,25 @@ class Ui_MainWindow(object):
         self.camera_view.setGeometry(QtCore.QRect(330, 390, 271, 181))
         self.camera_view.setObjectName("graphicsView")
 
+        '''
+            TODO: 2021-08-26 - Checar esse troco de 'pixmap'
+        '''
+
+        # self.pixmap = QtGui.QPixmap()
+        # self.view.setPixmap(self.pixmap)
+
+        # im1 = control.getCamImage(save=True,number=1)
+        # im2 = control.getCamImage(save=True,number=2)
+        # if im1 is not None:
+        #     self.pixmap = QtGui.QPixmap(im1)
+        #     self.pixmap = self.pixmap.scaled(220,220)
+        #     self.view.setPixmap(self.pixmap)
+        # if im2 is not None:
+        #     self.pixmap2 = QtGui.QPixmap(im2)
+        #     self.pixmap2 = self.pixmap2.scaled(220,220)
+        #     self.view2.setPixmap(self.pixmap2)
+
+
         # Figura guindaste
         self.crane_picture = QtWidgets.QGraphicsView(self.centralwidget)
         self.crane_picture.setGeometry(QtCore.QRect(10, 390, 200, 181))
@@ -229,6 +248,12 @@ class Ui_MainWindow(object):
         self.__translate = QtCore.QCoreApplication.translate
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        '''
+            TODO: 2021-08-26 - Pra que serve essa funcao raise() ??
+        '''
+        # self.graphicsView.raise_()
+        # self.graphicsView2.raise_()
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(self.__translate("MainWindow", NAME_SIMULATION))

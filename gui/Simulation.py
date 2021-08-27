@@ -1,6 +1,8 @@
 from typing import Tuple
 from config import TIMEOUT_CONNECTION
+import numpy as np
 import math
+from PyQt5 import QtGui
 
 try:
     import sim
@@ -82,7 +84,7 @@ class Simulation():
 
         if (self.__is_running):
             self.__log('Stopping simulation...')
-            op_result = sim.simxStopSimulation(self.__client_id, sim.simx_opmode_oneshot)
+            sim.simxStopSimulation(self.__client_id, sim.simx_opmode_oneshot)
             self.__log_coppelia('Group B will be back...')
             self.__is_running = False
 
@@ -90,9 +92,9 @@ class Simulation():
         '''
             Catch and return a simulation object handler by its name.
         '''
-        handle_result = sim.simxGetObjectHandle(self.__client_id, obj_name, sim.simx_opmode_blocking)
-        self.__validate_coppelia_return(handle_result[0])
-        return handle_result[1]
+        return_code, handle = sim.simxGetObjectHandle(self.__client_id, obj_name, sim.simx_opmode_blocking)
+        self.__validate_coppelia_return(return_code)
+        return handle
 
     def get_joint_angular_displacement(self, obj_name: str) -> float:
         '''
@@ -113,23 +115,35 @@ class Simulation():
             Return a simulation object absolute position coordinates in meters.
         '''
 
-        result = sim.simxGetObjectPosition(self.__client_id, self.get_obj_handle(obj_name), -1, sim.simx_opmode_blocking)
-        self.__validate_coppelia_return(result[0])
-        return result[1]
+        return_code, position = sim.simxGetObjectPosition(self.__client_id, self.get_obj_handle(obj_name), -1, sim.simx_opmode_blocking)
+        self.__validate_coppelia_return(return_code)
+        return position
 
-    def get_sensor_reading(self, obj_name: str) -> None:
+    def run_script(self, obj_name: str, func: str):
+        sim.simxCallScriptFunction(self.__client_id, obj_name, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
+
+    def set_joint_velocity(self, obj_name: str, velocity: float) -> None:
+        sim.simxSetJointTargetVelocity(self.__client_id, self.get_obj_handle(obj_name), velocity, sim.simx_opmode_oneshot)
+
+    def get_proximity_sensor_reading(self, obj_name: str) -> None:
         '''
             TODO: 2021-08-24 - ADD Descricao
             TODO: 2021-08-24 - Fazer isso funcionar
         '''
         result = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
-        # print('ya bada ba doo', result)
 
-    def run_script(self, obj: str, func: str):
-        sim.simxCallScriptFunction(self.__client_id, obj, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
+    def get_vision_sensor_img(self, sensor_obj_name: str) -> QtGui.QImage:
+         
+        return_code, resolution, image = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_buffer)
+        self.__validate_coppelia_return(return_code)
+        
+        height, width = resolution
+        img = np.array(image, dtype = np.uint8)
+        img.resize([height, width, 3])
+        img = np.array(img[::-1], dtype=np.uint8)
 
-    def set_joint_velocity(self, obj_name: str, velocity: float) -> None:
-        sim.simxSetJointTargetVelocity(self.__client_id, self.get_obj_handle(obj_name), velocity, sim.simx_opmode_oneshot)
+        bytesPerLine = 3 * width
+        return QtGui.QImage(img, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
 
     def __get_joint_displacement(self, obj_name: str) -> float:
         '''
@@ -137,9 +151,9 @@ class Simulation():
             It might be radians or metres depending on the type of the joint;
         '''
 
-        result = sim.simxGetJointPosition(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_blocking)
-        self.__validate_coppelia_return(result[0])
-        return result[1]        
+        return_code, displacement = sim.simxGetJointPosition(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_blocking)
+        self.__validate_coppelia_return(return_code)
+        return displacement
 
     def __validate_coppelia_return(self, return_code: int) -> None:
         '''
@@ -167,7 +181,7 @@ class Simulation():
         elif (sim.simx_return_initialize_error_flag == sim.simx_return_initialize_error_flag):
             return_name = 'simx_return_initialize_error_flag'
         
-        raise NotImplementedError('Bad operation return code: ' + str(return_code) + ' [' + return_name + ']')
+        raise Exception('Bad operation return code: ' + str(return_code) + ' [' + return_name + ']')
 
     def __log(self, msg: str) -> None:
         print('[sim]', msg)
