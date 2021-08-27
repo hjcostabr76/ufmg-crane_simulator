@@ -57,10 +57,10 @@ class Controller:
         return self.__simulation.get_joint_angular_displacement(SIM_ARM_JOINT)
 
     def get_crab_position(self) -> float:
-        return self.__get_parsed_distance(self.__simulation.get_obj_position(SIM_CRAB)[0])
+        return self.__get_parsed_position(self.__simulation.get_obj_position(SIM_CRAB)[0])
 
     def get_hoist_height(self) -> float:
-        return self.__get_parsed_distance(self.__simulation.get_obj_position(SIM_HOIST)[-1])
+        return self.__get_parsed_position(self.__simulation.get_obj_position(SIM_HOIST)[-1])
 
     def get_hoist_angle(self) -> float:
         return self.__simulation.get_joint_angular_displacement(SIM_HOIST_JOINT_ANGULAR)
@@ -71,7 +71,7 @@ class Controller:
     def get_proximity_sensor_reading(self) -> None:
         self.__simulation.get_sensor_reading(SIM_SENS_PROX)
 
-    def __get_parsed_distance(self, distance: float) -> float:
+    def __get_parsed_position(self, distance: float) -> float:
         return SCALE * distance
 
     def __set_obj_velocity(self, obj_name: str, level: int, max_vel: float) -> None: 

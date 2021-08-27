@@ -1,5 +1,5 @@
 from typing import Tuple
-from config import TIMEOUT
+from config import TIMEOUT_CONNECTION
 import math
 
 try:
@@ -27,7 +27,7 @@ class Simulation():
 
         self.__log('Trying to connect...')
         sim.simxFinish(-1) # just in case, close all opened connections
-        self.__client_id = sim.simxStart(ip, port, True, True, TIMEOUT, 5)
+        self.__client_id = sim.simxStart(ip, port, True, True, TIMEOUT_CONNECTION, 5)
         self.__is_connected = self.__client_id != -1
         
         error = None

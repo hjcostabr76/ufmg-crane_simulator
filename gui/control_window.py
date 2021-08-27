@@ -10,14 +10,18 @@
 import sys
 import time
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from config import NAME_SIMULATION
+from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import QTimer
+
+from config import NAME_SIMULATION, LCD_DIGITS_COUNT, TIMEOUT_DISPLAY
 from Simulation import Simulation
 from Controller import Controller
 from threading import Thread
 
 class Ui_MainWindow(object):
 
+    __is_simulation_running = False
+    __timer: QTimer = None
     __controller: Controller = None
     __translate: QtCore.QCoreApplication.translate = None
 
@@ -122,6 +126,7 @@ class Ui_MainWindow(object):
         self.hoist_angle_lcd = QtWidgets.QLCDNumber(self.centralwidget)
         self.hoist_angle_lcd.setGeometry(QtCore.QRect(80, 30, 131, 31))
         self.hoist_angle_lcd.setObjectName("lcdNumber_7")
+        self.hoist_angle_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # slider: Angulo da Ferramenta
         self.hoist_angle_slider = QtWidgets.QSlider(self.centralwidget)
@@ -143,6 +148,7 @@ class Ui_MainWindow(object):
         self.hoist_height_lcd = QtWidgets.QLCDNumber(self.centralwidget)
         self.hoist_height_lcd.setGeometry(QtCore.QRect(400, 130, 131, 31))
         self.hoist_height_lcd.setObjectName("lcdNumber_6")
+        self.hoist_height_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # Slider: Altura da Ferramenta
         self.hoist_height_slider = QtWidgets.QSlider(self.centralwidget)
@@ -164,6 +170,7 @@ class Ui_MainWindow(object):
         self.crab_position_lcd = QtWidgets.QLCDNumber(self.centralwidget)
         self.crab_position_lcd.setGeometry(QtCore.QRect(400, 30, 131, 31))
         self.crab_position_lcd.setObjectName("lcdNumber_5")
+        self.crab_position_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # Slider: Avanco da Ferramenta
         self.crab_position_slider = QtWidgets.QSlider(self.centralwidget)
@@ -185,6 +192,7 @@ class Ui_MainWindow(object):
         self.arm_angle_lcd = QtWidgets.QLCDNumber(self.centralwidget)
         self.arm_angle_lcd.setGeometry(QtCore.QRect(80, 130, 131, 31))
         self.arm_angle_lcd.setObjectName("lcdNumber_8")
+        self.arm_angle_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # Slider: Angulo da Lanca
         self.arm_angle_slider = QtWidgets.QSlider(self.centralwidget)
@@ -240,25 +248,41 @@ class Ui_MainWindow(object):
         self.camera_btn2.setText(self.__translate("MainWindow", "Câmera 2"))
         
     def initialize(self) -> None:
-        self.__set_input_listeners()
+        self.__set_handler_callbacks()
+        self.__set_timer()
         self.__update_camera_label()
         self.__update_simulation_status_display(False)
         self.__update_magnet_status_display(False)
 
-    def update_displayed_values(self) -> None:
+    def __set_timer(self) -> None:
+        '''
+            Establishes a timer to trigger telemetry displayed values updates.
+        '''
+
+        self.__timer = QTimer()
+        self.__timer.timeout.connect(self.__update_displayed_values)
+        self.__timer.start(TIMEOUT_DISPLAY)
+
+    def __update_displayed_values(self) -> None:
         '''
             Update the values shown on every lcd display / dinamic labels.
         '''
 
-        self.arm_angle_lcd.display(str(controller.get_arm_angle()))
-        self.crab_position_lcd.display(str(controller.get_crab_position()))
-        self.hoist_angle_lcd.display(str(controller.get_hoist_angle()))
-        self.hoist_height_lcd.display(str(controller.get_hoist_height()))
-        # self.__update_simulation_status_display(False)
-        # self.__update_magnet_status_display(False)
+        if (not self.__is_simulation_running):
+            return
+
+        self.arm_angle_lcd.display(self.__get_display_number(controller.get_arm_angle()))
+        self.crab_position_lcd.display(self.__get_display_number(controller.get_crab_position()))
+        self.hoist_angle_lcd.display(self.__get_display_number(controller.get_hoist_angle()))
+        self.hoist_height_lcd.display(self.__get_display_number(controller.get_hoist_height()))
+        self.__update_simulation_status_display(False)
+        self.__update_magnet_status_display(False)
         self.__update_load_status_display(False)
 
-    def __set_input_listeners(self) -> None:
+    def __set_handler_callbacks(self) -> None:
+        '''
+            Establishes callback functions to be executed on user interaction with the ui.
+        '''
         
         self.arm_angle_slider.valueChanged.connect(self.__set_arm_vel)
         self.crab_position_slider.valueChanged.connect(self.__set_crab_vel)
@@ -275,10 +299,12 @@ class Ui_MainWindow(object):
     def __start_simulation(self) -> None:
         self.__controller.start_simulation()
         self.__update_simulation_status_display(True)
+        self.__is_simulation_running = True
 
     def __stop_simulation(self) -> None:
         self.__controller.stop_simulation()
         self.__update_simulation_status_display(False)
+        self.__is_simulation_running = False
 
     def __turn_magnet_on(self) -> None:
         self.__controller.turn_magnet_on()
@@ -322,35 +348,30 @@ class Ui_MainWindow(object):
         self.simulation_status_display.setPlainText('Simulação em andamento' if is_on else 'Simulação parada')
 
     def __update_magnet_status_display(self, is_on: bool) -> None:
-        self.magnet_status_display.setPlainText('Ímã ligado' if is_on else 'Ímã desligado')
+        self.magnet_status_display.setPlainText('Ligado' if is_on else 'Desligado')
 
     def __update_load_status_display(self, is_attached: bool) -> None:
-        self.load_status_display.setPlainText('Carga acoplada' if is_attached else 'Carga não acoplada')
+        self.load_status_display.setPlainText('Acoplada' if is_attached else 'Não acoplada')
+
+    def __get_display_number(self, value: float) -> str:
+        '''
+            Unifies numeric formatting for all number values exhibition.
+        '''
+
+        return str(round(value, 2))
 
 if __name__ != "__main__":
     sys.exit()
 
-should_stop_thread = False
 simulation: Simulation = None
 app: QtWidgets.QApplication = None
 thread_updater: Thread = None
 ui: Ui_MainWindow = None
 
-# def thread_update_displayed_values(ui_controller: Ui_MainWindow) -> None:
-def thread_update_displayed_values() -> None:
-    '''
-        Thread that keeps updating the value of the meters shown in the UI.
-    '''
-
-    try:
-        while not should_stop_thread:
-            # print('arroz')
-            ui.update_displayed_values()
-            time.sleep(.8)
-
-    except Exception as error:
-        print('Falha na Thread de atualização dos displays')
-        raise error
+def finish_simulation() -> None:
+    if simulation:
+        simulation.disconnect()
+    print('\n-- THE END --\n')
 
 try:
 
@@ -367,16 +388,13 @@ try:
 
     # Iniciar controlador & tela
     app = QtWidgets.QApplication(sys.argv)
+    # app.aboutToQuit.connect(finish_simulation)
     
     MainWindow = QtWidgets.QMainWindow()
     controller = Controller(simulation)
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, controller)
     ui.initialize()
-
-    # Ativa thread para atualizar valores dinamicos mostrados na tela
-    thread_updater = Thread(target=thread_update_displayed_values)
-    thread_updater.start()
     
     # Exibe tela
     MainWindow.show()
@@ -384,10 +402,11 @@ try:
             
 
 except ConnectionError as conn_error:
-    print('\nLost connestr()ction to simulation: ', conn_error)
+    print('\nLost connection to simulation: ', conn_error)
     raise conn_error
 
 except KeyboardInterrupt:
+    print('\nKeyboardInterrupt...')
     pass
 
 except Exception as error:
@@ -395,12 +414,4 @@ except Exception as error:
     raise error
 
 finally:
-    
-    should_stop_thread = True
-    while thread_updater.is_alive():
-        time.sleep(.001)
-    
-    if simulation:
-        simulation.disconnect()
-
-    print('\n-- THE END --\n')
+    finish_simulation()
