@@ -42,15 +42,15 @@ class Ui_MainWindow(object):
 
         # Camera
         self.camera_view = QtWidgets.QGraphicsView(self.centralwidget)
-        self.camera_view.setGeometry(QtCore.QRect(330, 390, 271, 181))
+        self.camera_view.setGeometry(QtCore.QRect(330, 390, 200, 181))
         self.camera_view.setObjectName("graphicsView")
 
         # Figura guindaste
         self.crane_picture_view = QtWidgets.QGraphicsView(self.centralwidget)
         self.crane_picture_view.setGeometry(QtCore.QRect(10, 390, 200, 181))
         self.crane_picture_view.setObjectName("graphicsView_2")
-        self.crane_picture_view.setStyleSheet("background:transparent;")        
-        self.__set_img(self.crane_picture_view, './crane.jpg')
+        self.crane_picture_view.setStyleSheet("background:transparent;")
+        self.__set_img(self.crane_picture_view, './crane.jpg', .35)
 
         # Status do Guindaste
         self.simulation_status_label = QtWidgets.QLabel(self.centralwidget)
@@ -114,18 +114,18 @@ class Ui_MainWindow(object):
 
         # label: Angulo da Ferramenta
         self.hoist_angle_label = QtWidgets.QLabel(self.centralwidget)
-        self.hoist_angle_label.setGeometry(QtCore.QRect(80, 10, 131, 20))
+        self.hoist_angle_label.setGeometry(QtCore.QRect(80, 110, 131, 20))
         self.hoist_angle_label.setObjectName("label_11")
 
         # lcd: Angulo da Ferramenta
         self.hoist_angle_lcd = QtWidgets.QLCDNumber(self.centralwidget)
-        self.hoist_angle_lcd.setGeometry(QtCore.QRect(80, 30, 131, 31))
+        self.hoist_angle_lcd.setGeometry(QtCore.QRect(80, 130, 131, 31))
         self.hoist_angle_lcd.setObjectName("lcdNumber_7")
         self.hoist_angle_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # slider: Angulo da Ferramenta
         self.hoist_angle_slider = QtWidgets.QSlider(self.centralwidget)
-        self.hoist_angle_slider.setGeometry(QtCore.QRect(10, 70, 271, 29))
+        self.hoist_angle_slider.setGeometry(QtCore.QRect(10, 170, 271, 29))
         self.hoist_angle_slider.setOrientation(QtCore.Qt.Horizontal)
         self.hoist_angle_slider.setObjectName("horizontalSlider_7")
         self.hoist_angle_slider.setMinimum(-10)
@@ -180,18 +180,18 @@ class Ui_MainWindow(object):
 
         # label: Angulo da Lanca
         self.arm_angle_label = QtWidgets.QLabel(self.centralwidget)
-        self.arm_angle_label.setGeometry(QtCore.QRect(80, 110, 131, 20))
+        self.arm_angle_label.setGeometry(QtCore.QRect(80, 10, 131, 20))
         self.arm_angle_label.setObjectName("label_12")
 
         # lcd: Angulo da Lanca
         self.arm_angle_lcd = QtWidgets.QLCDNumber(self.centralwidget)
-        self.arm_angle_lcd.setGeometry(QtCore.QRect(80, 130, 131, 31))
+        self.arm_angle_lcd.setGeometry(QtCore.QRect(80, 30, 131, 31))
         self.arm_angle_lcd.setObjectName("lcdNumber_8")
         self.arm_angle_lcd.setDigitCount(LCD_DIGITS_COUNT)
 
         # Slider: Angulo da Lanca
         self.arm_angle_slider = QtWidgets.QSlider(self.centralwidget)
-        self.arm_angle_slider.setGeometry(QtCore.QRect(10, 170, 271, 29))
+        self.arm_angle_slider.setGeometry(QtCore.QRect(10, 70, 271, 29))
         self.arm_angle_slider.setOrientation(QtCore.Qt.Horizontal)
         self.arm_angle_slider.setObjectName("horizontalSlider_8")
         self.arm_angle_slider.setMinimum(-10)
@@ -276,12 +276,12 @@ class Ui_MainWindow(object):
         self.crab_position_lcd.display(self.__get_display_number(controller.get_crab_position()))
         self.hoist_angle_lcd.display(self.__get_display_number(controller.get_hoist_angle()))
         self.hoist_height_lcd.display(self.__get_display_number(controller.get_hoist_height()))
-        self.__update_simulation_status_display(False)
-        self.__update_magnet_status_display(False)
-        self.__update_load_status_display(False)
+        self.__update_simulation_status_display(self.__is_simulation_running)
+        self.__update_magnet_status_display(self.__controller.is_magnet_active())
+        self.__update_load_status_display(self.__controller.is_load_attached())
 
         if (self.__selected_cam):
-            self.__set_img(self.camera_view, self.__controller.get_cam_img(self.__selected_cam))
+            self.__set_img(self.camera_view, self.__controller.get_cam_img(self.__selected_cam), .6)
 
     def __set_handler_callbacks(self) -> None:
         '''
@@ -366,9 +366,9 @@ class Ui_MainWindow(object):
 
         return str(round(value, 2))
 
-    def __set_img(self, view: QtWidgets.QGraphicsView, img) -> None:
+    def __set_img(self, view: QtWidgets.QGraphicsView, img, scale: float = 1) -> None:
         scene_item = QtWidgets.QGraphicsPixmapItem(QtGui.QPixmap(img))
-        scene_item.setScale(0.35)
+        scene_item.setScale(scale)
         scene = QtWidgets.QGraphicsScene(self.centralwidget)
         scene.addItem(scene_item)
         view.setScene(scene)

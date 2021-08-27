@@ -3,6 +3,7 @@ from config import TIMEOUT_CONNECTION
 import numpy as np
 import math
 from PyQt5 import QtGui
+import matplotlib.pyplot as mpl
 
 try:
     import sim
@@ -120,8 +121,8 @@ class Simulation():
         self.__validate_coppelia_return(return_code)
         return position
 
-    def run_script(self, obj_name: str, func: str):
-        sim.simxCallScriptFunction(self.__client_id, obj_name, sim.sim_scripttype_childscript, func, [], [], [], bytearray(), sim.simx_opmode_blocking)
+    def run_script(self, obj_name: str, func_name: str):
+        sim.simxCallScriptFunction(self.__client_id, obj_name, sim.sim_scripttype_childscript, func_name, [], [], [], bytearray(), sim.simx_opmode_blocking)
 
     def set_joint_velocity(self, obj_name: str, velocity: float) -> None:
         sim.simxSetJointTargetVelocity(self.__client_id, self.get_obj_handle(obj_name), velocity, sim.simx_opmode_oneshot)
@@ -133,18 +134,63 @@ class Simulation():
         '''
         result = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
 
-    def get_vision_sensor_img(self, sensor_obj_name: str) -> QtGui.QImage:
+    def vision_sensor_init(self, sensor_obj_name: str) -> None:
+        '''
+            Initialize a vision sensor so it can be read later.
+            First calling should be in streaming mode and others in buffer mode (according to the docs).
+        '''
+
+        return_code, _, _ = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_streaming)
+        self.__validate_coppelia_return(return_code)
+
+    def get_vision_sensor_img_matrix(self, sensor_obj_name: str) -> Tuple[np.array, None]:
+        '''
+            Generates and return an image rgb bits matrix after reading a vision sensor.
+            It expects that the vision sensor is already initialized.
+        '''
 
         return_code, resolution, image = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_buffer)
         self.__validate_coppelia_return(return_code)
         
-        height, width = resolution
-        img = np.array(image, dtype = np.uint8)
-        img.resize([height, width, 3])
-        img = np.array(img[::-1], dtype=np.uint8)
+        if len(resolution):
+            height, width = resolution
+            img = np.array(image, dtype = np.uint8)
+            img.resize([height, width, 3])
+            return img
 
-        bytesPerLine = 3 * width
-        return QtGui.QImage(img, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+    def get_vision_sensor_img(self, sensor_obj_name: str, ) -> Tuple[QtGui.QImage, None]:
+        '''
+            Generates and return an image after reading a vision sensor.
+            It expects that the vision sensor is already initialized.
+        '''
+
+        img = self.get_vision_sensor_img_matrix(sensor_obj_name)
+        if isinstance(img, np.ndarray):
+            height, width, _ = img.shape
+            bytesPerLine = 3 * width # TODO: Understand why we use this bytes quantity
+            return QtGui.QImage(img, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+
+    def print_vision_sensor_img(self, sensor_obj_name: str) -> None:
+        '''
+            Generates and prints an image after reading a vision sensor.
+            It expects that the vision sensor is already initialized.
+        '''
+
+        img = self.get_vision_sensor_img_matrix(sensor_obj_name)
+        if isinstance(img, np.ndarray):
+            mpl.imshow(img, origin='lower')
+            mpl.show()
+
+    def save_vision_sensor_img(self, sensor_obj_name: str, file_name: str = None) -> QtGui.QImage:
+        '''
+            Save an image after reading a vision sensor.
+            It expects that the vision sensor is already initialized.
+        '''
+
+        img = self.get_vision_sensor_img_matrix(sensor_obj_name)
+        if isinstance(img, np.ndarray):
+            mpl.imshow(img, origin='lower')
+            mpl.savefig(file_name)
 
     def __get_joint_displacement(self, obj_name: str) -> float:
         '''
