@@ -98,6 +98,31 @@ class Simulation():
         self.__validate_coppelia_return(return_code)
         return handle
 
+    def debug_all_handles(self) -> None:
+        
+        foo = [
+            (sim.sim_object_shape_type, 'Shapes'),
+            (sim.sim_object_joint_type, 'Joints'),
+            (sim.sim_object_camera_type, 'Cameras'),
+            (sim.sim_object_proximitysensor_type, 'Proximity Sensors'),
+            (sim.sim_object_visionsensor_type, 'Vision Sensors'),
+            (sim.sim_object_forcesensor_type, 'Force Sensors'),
+            (sim.sim_object_graph_type, 'Graphs'),
+            (sim.sim_object_light_type, 'Lights'),
+            (sim.sim_object_dummy_type, 'Dummies'),
+            # sim_object_reserved1
+            # sim_object_reserved2
+            # sim_object_path_type
+            # sim_object_volume_type
+            # sim_object_mill_type
+            # sim_object_mirror_type
+        ]
+
+        for bar in foo:
+            self.__log('Handles [' + bar[1] + ']:')
+            print(sim.simxGetObjects(self.__client_id, bar[0], sim.simx_opmode_blocking)[1])
+
+
     def get_joint_angular_displacement(self, obj_name: str) -> float:
         '''
             Return the angular displacement of a simulation joint in degrees.
@@ -127,12 +152,44 @@ class Simulation():
     def set_joint_velocity(self, obj_name: str, velocity: float) -> None:
         sim.simxSetJointTargetVelocity(self.__client_id, self.get_obj_handle(obj_name), velocity, sim.simx_opmode_oneshot)
 
-    def get_proximity_sensor_reading(self, obj_name: str) -> None:
+    def force_sensor_init(self, sensor_obj_name: str) -> None:
+        '''
+            Initialize a force sensor so it can be read later.
+            First calling should be in streaming mode and others in buffer mode (according to the docs).
+        '''
+
+        return_code, _, _, _ = sim.simxReadForceSensor(self.__client_id, self.get_obj_handle(sensor_obj_name), sim.simx_opmode_streaming)
+        self.__validate_coppelia_return(return_code, False)
+
+    def get_force_sensor_force(self, sensor_obj_name: str) -> Tuple:
+        '''
+            Read a force sensor and return if it is broken and its force vector reading.
+            TODO: 2021-08-27 - Reajustar validacao
+        '''
+
+        return_code, state, force_vec, _ = sim.simxReadForceSensor(self.__client_id, self.get_obj_handle(sensor_obj_name), sim.simx_opmode_streaming)
+        self.__validate_coppelia_return(return_code, False)
+        is_broken = state > 1
+        return is_broken, force_vec
+
+    def prox_sensor_init(self, sensor_obj_name: str) -> None:
+        '''
+            Initialize a proximity sensor so it can be read later.
+            First calling should be in streaming mode and others in buffer mode (according to the docs).
+        '''
+
+        return_code, _, _, _, _ = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(sensor_obj_name), sim.simx_opmode_streaming)
+        self.__validate_coppelia_return(return_code, False)
+
+    def get_prox_sensor_reading(self, obj_name: str) -> None:
         '''
             TODO: 2021-08-24 - ADD Descricao
-            TODO: 2021-08-24 - Fazer isso funcionar
+            TODO: 2021-08-24 - Reajustar validacao
+            TODO: 2021-08-24 - Concluir implementacao
         '''
-        result = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
+        return_code, state, detected_point, detected_obj, _ = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
+        self.__validate_coppelia_return(return_code, False)
+        # print('prox sensor:', return_code, state, detected_point, detected_obj)
 
     def vision_sensor_init(self, sensor_obj_name: str) -> None:
         '''
@@ -141,16 +198,17 @@ class Simulation():
         '''
 
         return_code, _, _ = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_streaming)
-        self.__validate_coppelia_return(return_code)
+        self.__validate_coppelia_return(return_code, False)
 
     def get_vision_sensor_img_matrix(self, sensor_obj_name: str) -> Tuple[np.array, None]:
         '''
             Generates and return an image rgb bits matrix after reading a vision sensor.
             It expects that the vision sensor is already initialized.
+            TODO: 2021-08-27 - Reajustar validacao
         '''
 
         return_code, resolution, image = sim.simxGetVisionSensorImage(self.__client_id, self.get_obj_handle(sensor_obj_name), 0, sim.simx_opmode_buffer)
-        self.__validate_coppelia_return(return_code)
+        self.__validate_coppelia_return(return_code, False)
         
         if len(resolution):
             height, width = resolution
@@ -202,7 +260,7 @@ class Simulation():
         self.__validate_coppelia_return(return_code)
         return displacement
 
-    def __validate_coppelia_return(self, return_code: int) -> None:
+    def __validate_coppelia_return(self, return_code: int, should_throw_on_no_value: bool = True) -> None:
         '''
             Avaliar o codigo de retorno de 01 operacao do coppelia. Notifica & lanca excessao em caso de falha.
             See: https://www.coppeliarobotics.com/helpFiles/en/remoteApiConstants.htm#functionErrorCodes
@@ -212,6 +270,11 @@ class Simulation():
             return
         
         return_name: str = None
+
+        if (sim.simx_return_novalue_flag == sim.simx_return_novalue_flag):
+            if not should_throw_on_no_value:
+                return
+            return_name = 'simx_return_novalue_flag'
 
         if (sim.simx_return_novalue_flag == sim.simx_return_novalue_flag):
             return_name = 'simx_return_novalue_flag'

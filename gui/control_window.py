@@ -19,7 +19,7 @@ from threading import Thread
 
 class Ui_MainWindow(object):
 
-    __selected_cam: int = None
+    __selected_cam: int = 1
     __is_simulation_running = False
     __timer: QTimer = None
     __controller: Controller = None
@@ -276,6 +276,14 @@ class Ui_MainWindow(object):
         self.crab_position_lcd.display(self.__get_display_number(controller.get_crab_position()))
         self.hoist_angle_lcd.display(self.__get_display_number(controller.get_hoist_angle()))
         self.hoist_height_lcd.display(self.__get_display_number(controller.get_hoist_height()))
+
+        '''
+            TODO: 2021-08-27 - Habilitar atualizacao da leitura do sensor de distancia
+        '''
+        # self.sensor_proximity_lcd.display(self.__get_display_number(controller.get_load_distance()))
+        controller.get_load_distance()
+        self.sensor_proximity_lcd.display(self.__get_display_number(0))
+        
         self.__update_simulation_status_display(self.__is_simulation_running)
         self.__update_magnet_status_display(self.__controller.is_magnet_active())
         self.__update_load_status_display(self.__controller.is_load_attached())
