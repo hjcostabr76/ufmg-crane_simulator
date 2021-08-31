@@ -30,7 +30,7 @@ class Ui_MainWindow(object):
         self.__controller = controller
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(812, 634)
+        MainWindow.resize(812, 750)
         
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -42,15 +42,15 @@ class Ui_MainWindow(object):
 
         # Camera
         self.camera_view = QtWidgets.QGraphicsView(self.centralwidget)
-        self.camera_view.setGeometry(QtCore.QRect(330, 390, 200, 181))
+        self.camera_view.setGeometry(QtCore.QRect(330, 390, 300, 300))
         self.camera_view.setObjectName("graphicsView")
 
         # Figura guindaste
         self.crane_picture_view = QtWidgets.QGraphicsView(self.centralwidget)
-        self.crane_picture_view.setGeometry(QtCore.QRect(10, 390, 200, 181))
+        self.crane_picture_view.setGeometry(QtCore.QRect(10, 385, 300, 300))
         self.crane_picture_view.setObjectName("graphicsView_2")
         self.crane_picture_view.setStyleSheet("background:transparent;")
-        self.__set_img(self.crane_picture_view, './crane.jpg', .35)
+        self.__set_img(self.crane_picture_view, './crane.jpg', .5)
 
         # Status do Guindaste
         self.simulation_status_label = QtWidgets.QLabel(self.centralwidget)
@@ -287,7 +287,7 @@ class Ui_MainWindow(object):
         self.sensor_proximity_lcd.display(prox_display_value)
 
         if (self.__selected_cam):
-            self.__set_img(self.camera_view, self.__controller.get_cam_img(self.__selected_cam), .6)
+            self.__set_img(self.camera_view, self.__controller.get_cam_img(self.__selected_cam), 1.1)
 
     def __set_handler_callbacks(self) -> None:
         '''

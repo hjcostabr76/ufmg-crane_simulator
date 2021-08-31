@@ -21,7 +21,8 @@ class Simulation():
     __is_running: bool = False
 
 
-    def connect(self, ip: str = '127.0.0.1', port: int = 19997) -> Tuple[bool, int, str]:
+    # def connect(self, ip: str = '127.0.0.1', port: int = 19997) -> Tuple[bool, int, str]:
+    def connect(self, ip: str = '25.99.217.232', port: int = 19997) -> Tuple[bool, int, str]:
         '''
             Conecta cliente ao coppelia.
             Retorna status da conexao, codigo da simulacao, descricao de falha
