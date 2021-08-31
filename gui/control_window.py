@@ -276,11 +276,15 @@ class Ui_MainWindow(object):
         self.crab_position_lcd.display(self.__get_display_number(controller.get_crab_position()))
         self.hoist_angle_lcd.display(self.__get_display_number(controller.get_hoist_angle()))
         self.hoist_height_lcd.display(self.__get_display_number(controller.get_hoist_height()))
-        self.sensor_proximity_lcd.display(self.__get_display_number(controller.get_load_distance()))
-        
+
+        is_load_attached = self.__controller.is_load_attached()
+        self.__update_load_status_display(is_load_attached)
         self.__update_simulation_status_display(self.__is_simulation_running)
         self.__update_magnet_status_display(self.__controller.is_magnet_active())
-        self.__update_load_status_display(self.__controller.is_load_attached())
+
+        prox_sensor_distance = controller.get_load_distance()
+        prox_display_value = self.__get_display_number(prox_sensor_distance) if not is_load_attached else '--'
+        self.sensor_proximity_lcd.display(prox_display_value)
 
         if (self.__selected_cam):
             self.__set_img(self.camera_view, self.__controller.get_cam_img(self.__selected_cam), .6)

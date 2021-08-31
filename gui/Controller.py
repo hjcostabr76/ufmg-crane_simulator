@@ -24,7 +24,7 @@ class Controller:
         
         simulation.vision_sensor_init(SIM_SENS_VISION_CAM1)
         simulation.vision_sensor_init(SIM_SENS_VISION_CAM2)
-        simulation.prox_sensor_init(SIM_SENS_PROX, SIM_BASE)
+        simulation.prox_sensor_init(SIM_SENS_PROX)
         simulation.force_sensor_init(SIM_SENS_FORCE)
 
     def debug_element_handles(self) -> None:
@@ -94,17 +94,17 @@ class Controller:
         return self.__simulation.get_joint_angular_displacement(SIM_ARM_JOINT)
 
     def get_crab_position(self) -> float:
-        return self.__get_parsed_position(self.__simulation.get_obj_position(SIM_CRAB)[0])
+        return self.__get_parsed_distance(self.__simulation.get_obj_position(SIM_CRAB)[0])
 
     def get_hoist_height(self) -> float:
-        return self.__get_parsed_position(self.__simulation.get_obj_position(SIM_HOIST)[-1])
+        return self.__get_parsed_distance(self.__simulation.get_obj_position(SIM_HOIST)[-1])
 
     def get_hoist_angle(self) -> float:
         return self.__simulation.get_joint_angular_displacement(SIM_HOIST_JOINT_ANGULAR)
 
     def get_load_distance(self) -> float:
-        detected_obj, distance = self.__simulation.get_prox_sensor_distance(SIM_SENS_PROX)
-        return math.inf if not detected_obj else distance
+        detected_obj, distance = self.__simulation.get_prox_sensor_distance(SIM_SENS_PROX, 2)
+        return math.inf if not detected_obj else self.__get_parsed_distance(distance)
 
     def get_cam_img(self, cam_number: int) -> QtGui.QImage:
         if (cam_number not in [1, 2]):
@@ -118,10 +118,12 @@ class Controller:
         '''
 
         if not self.__is_magnet_active:
+            self.__log('Load is not attached because magnet is not active')
             return False
 
         self.__is_force_sensor_broken, force_vector = self.__simulation.get_force_sensor_force(SIM_SENS_FORCE)
         if self.__is_force_sensor_broken:
+            self.__log('Force sensor is broken!')
             return False
 
         for i in range(len(force_vector)):
@@ -132,7 +134,7 @@ class Controller:
     def is_force_sensor_ok(self) -> bool:
         return not self.__is_force_sensor_broken
 
-    def __get_parsed_position(self, distance: float) -> float:
+    def __get_parsed_distance(self, distance: float) -> float:
         return SCALE * distance
 
     def __set_obj_velocity(self, obj_name: str, level: int, max_vel: float) -> None: 

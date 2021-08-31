@@ -137,12 +137,17 @@ class Simulation():
         
         return self.__get_joint_displacement(obj_name)
 
-    def get_obj_position(self, obj_name: str) -> float:
+    def get_obj_position(self, obj_name: str = None, obj_handle: int = None) -> float:
         '''
             Return a simulation object absolute position coordinates in meters.
         '''
 
-        return_code, position = sim.simxGetObjectPosition(self.__client_id, self.get_obj_handle(obj_name), -1, sim.simx_opmode_blocking)
+        if not obj_handle:
+            if not obj_name:
+                raise ValueError('To get an object position is necessary to have it\'s name or handle')
+            obj_handle = self.get_obj_handle(obj_name)
+
+        return_code, position = sim.simxGetObjectPosition(self.__client_id, obj_handle, -1, sim.simx_opmode_blocking)
         self.__validate_coppelia_return(return_code)
         return position
 
@@ -172,9 +177,8 @@ class Simulation():
         is_broken = state > 1
         return is_broken, force_vec
 
-    def prox_sensor_init(self, sensor_obj_name: str, distance_init_obj_name: str = None) -> None:
+    def prox_sensor_init(self, sensor_obj_name: str) -> None:
         '''
-            TODO: 2021-08-30 - Atualizar descricao
             Initialize a proximity sensor so it can be read later.
             First calling should be in streaming mode and others in buffer mode (according to the docs).
         '''
@@ -183,33 +187,32 @@ class Simulation():
         return_code1, _, _, _, _ = sim.simxReadProximitySensor(self.__client_id, sensor_handle, sim.simx_opmode_streaming)
         self.__validate_coppelia_return(return_code1, False)
 
-        if distance_init_obj_name:
-            return_code2, _ = sim.simxCheckDistance(self.__client_id, sensor_handle, self.get_obj_handle(distance_init_obj_name), sim.simx_opmode_streaming)
-            # print('obj distance init...', return_code2, _)
-            self.__validate_coppelia_return(return_code2, False)
-
-    def get_prox_sensor_distance(self, obj_name: str) -> Tuple[Tuple, None]:
+    def get_prox_sensor_distance(self, obj_name: str, axis: int) -> Tuple[Tuple, None]:
         '''
             TODO: 2021-08-24 - ADD Descricao
             TODO: 2021-08-24 - Reajustar validacao
-            TODO: 2021-08-24 - Concluir implementacao
         '''
 
-        sensor_handle = self.get_obj_handle(obj_name)
-        return_code, have_detected, detected_point, detected_obj, _ = sim.simxReadProximitySensor(self.__client_id, sensor_handle, sim.simx_opmode_buffer)
+        sensor_obj = self.get_obj_handle(obj_name)
+        return_code, have_detected, detected_point, detected_obj, _ = sim.simxReadProximitySensor(self.__client_id, sensor_obj, sim.simx_opmode_buffer)
         self.__validate_coppelia_return(return_code, False)
         # print('prox sensor:', return_code, have_detected, detected_point, detected_obj)
         if have_detected:
-            return detected_obj, self.get_distance_between_objects(sensor_handle, detected_obj)
+            return detected_obj, self.get_distance_between_objects(sensor_obj, detected_obj, axis)
 
-    def get_distance_between_objects(self, obj1: int, obj2: int) -> float:
+    def get_distance_between_objects(self, obj1: int, obj2: int, axis: int) -> float:
         '''
             TODO: 2021-08-30 - ADD Descricao
+            TODO: 2021-08-30 - Calcular distancia em multiplos eixos
         '''
 
-        return_code, min_distance = sim.simxCheckDistance(self.__client_id, obj1, obj2, sim.simx_opmode_buffer)
-        self.__validate_coppelia_return(return_code)
-        return min_distance
+        if axis not in [0, 1, 2]:
+            raise ValueError('Axis should be 0 (x), 1 (y) or 2 (z). ' + str(axis) + ' received')
+
+        obj1_position = self.get_obj_position(self.__client_id, obj_handle=obj1)
+        obj2_position = self.get_obj_position(self.__client_id, obj_handle=obj2)
+        
+        return math.fabs(obj1_position[axis] - obj2_position[axis])
 
     def vision_sensor_init(self, sensor_obj_name: str) -> None:
         '''
