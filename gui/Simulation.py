@@ -172,24 +172,44 @@ class Simulation():
         is_broken = state > 1
         return is_broken, force_vec
 
-    def prox_sensor_init(self, sensor_obj_name: str) -> None:
+    def prox_sensor_init(self, sensor_obj_name: str, distance_init_obj_name: str = None) -> None:
         '''
+            TODO: 2021-08-30 - Atualizar descricao
             Initialize a proximity sensor so it can be read later.
             First calling should be in streaming mode and others in buffer mode (according to the docs).
         '''
+        
+        sensor_handle = self.get_obj_handle(sensor_obj_name)
+        return_code1, _, _, _, _ = sim.simxReadProximitySensor(self.__client_id, sensor_handle, sim.simx_opmode_streaming)
+        self.__validate_coppelia_return(return_code1, False)
 
-        return_code, _, _, _, _ = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(sensor_obj_name), sim.simx_opmode_streaming)
-        self.__validate_coppelia_return(return_code, False)
+        if distance_init_obj_name:
+            return_code2, _ = sim.simxCheckDistance(self.__client_id, sensor_handle, self.get_obj_handle(distance_init_obj_name), sim.simx_opmode_streaming)
+            # print('obj distance init...', return_code2, _)
+            self.__validate_coppelia_return(return_code2, False)
 
-    def get_prox_sensor_reading(self, obj_name: str) -> None:
+    def get_prox_sensor_distance(self, obj_name: str) -> Tuple[Tuple, None]:
         '''
             TODO: 2021-08-24 - ADD Descricao
             TODO: 2021-08-24 - Reajustar validacao
             TODO: 2021-08-24 - Concluir implementacao
         '''
-        return_code, state, detected_point, detected_obj, _ = sim.simxReadProximitySensor(self.__client_id, self.get_obj_handle(obj_name), sim.simx_opmode_buffer)
+
+        sensor_handle = self.get_obj_handle(obj_name)
+        return_code, have_detected, detected_point, detected_obj, _ = sim.simxReadProximitySensor(self.__client_id, sensor_handle, sim.simx_opmode_buffer)
         self.__validate_coppelia_return(return_code, False)
-        # print('prox sensor:', return_code, state, detected_point, detected_obj)
+        # print('prox sensor:', return_code, have_detected, detected_point, detected_obj)
+        if have_detected:
+            return detected_obj, self.get_distance_between_objects(sensor_handle, detected_obj)
+
+    def get_distance_between_objects(self, obj1: int, obj2: int) -> float:
+        '''
+            TODO: 2021-08-30 - ADD Descricao
+        '''
+
+        return_code, min_distance = sim.simxCheckDistance(self.__client_id, obj1, obj2, sim.simx_opmode_buffer)
+        self.__validate_coppelia_return(return_code)
+        return min_distance
 
     def vision_sensor_init(self, sensor_obj_name: str) -> None:
         '''
@@ -214,6 +234,7 @@ class Simulation():
             height, width = resolution
             img = np.array(image, dtype = np.uint8)
             img.resize([height, width, 3])
+            img = np.array(img[::-1], dtype=np.uint8)
             return img
 
     def get_vision_sensor_img(self, sensor_obj_name: str, ) -> Tuple[QtGui.QImage, None]:

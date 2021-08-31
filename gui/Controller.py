@@ -24,7 +24,7 @@ class Controller:
         
         simulation.vision_sensor_init(SIM_SENS_VISION_CAM1)
         simulation.vision_sensor_init(SIM_SENS_VISION_CAM2)
-        simulation.prox_sensor_init(SIM_SENS_PROX)
+        simulation.prox_sensor_init(SIM_SENS_PROX, SIM_BASE)
         simulation.force_sensor_init(SIM_SENS_FORCE)
 
     def debug_element_handles(self) -> None:
@@ -102,8 +102,9 @@ class Controller:
     def get_hoist_angle(self) -> float:
         return self.__simulation.get_joint_angular_displacement(SIM_HOIST_JOINT_ANGULAR)
 
-    def get_load_distance(self) -> None:
-        self.__simulation.get_prox_sensor_reading(SIM_SENS_PROX)
+    def get_load_distance(self) -> float:
+        detected_obj, distance = self.__simulation.get_prox_sensor_distance(SIM_SENS_PROX)
+        return math.inf if not detected_obj else distance
 
     def get_cam_img(self, cam_number: int) -> QtGui.QImage:
         if (cam_number not in [1, 2]):
